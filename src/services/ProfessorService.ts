@@ -1,83 +1,69 @@
 
 import { Professor } from '../types/Professor';
 
-// Dados mockados
-let professores: Professor[] = [
-  {
-    id: 1,
-    nome: 'Dr. Carlos Oliveira',
-    matricula: 'PROF001',
-    ativo: true,
-    cpf: '55566677788'
-  },
-  {
-    id: 2,
-    nome: 'Dra. Ana Costa',
-    matricula: 'PROF002',
-    ativo: true,
-    cpf: '99988877766'
-  },
-  {
-    id: 3,
-    nome: 'Prof. Roberto Inativo',
-    matricula: 'PROF003',
-    ativo: false,
-    cpf: '44455566677'
-  }
-];
-
-let nextId = 4;
-
 export class ProfessorService {
-  static getAll(): Professor[] {
-    return professores;
+  private static baseUrl = '/api/professores';
+
+  static async getAll(): Promise<Professor[]> {
+    const response = await fetch(this.baseUrl);
+    if (!response.ok) throw new Error('Erro ao buscar professores');
+    return response.json();
   }
 
-  static getAtivos(): Professor[] {
-    return professores.filter(professor => professor.ativo);
+  static async getAtivos(): Promise<Professor[]> {
+    const response = await fetch(`${this.baseUrl}/ativos`);
+    if (!response.ok) throw new Error('Erro ao buscar professores ativos');
+    return response.json();
   }
 
-  static getInativos(): Professor[] {
-    return professores.filter(professor => !professor.ativo);
+  static async getInativos(): Promise<Professor[]> {
+    const response = await fetch(`${this.baseUrl}/inativos`);
+    if (!response.ok) throw new Error('Erro ao buscar professores inativos');
+    return response.json();
   }
 
-  static getById(id: number): Professor | undefined {
-    return professores.find(professor => professor.id === id);
+  static async getById(id: number): Promise<Professor> {
+    const response = await fetch(`${this.baseUrl}/${id}`);
+    if (!response.ok) throw new Error('Erro ao buscar professor');
+    return response.json();
   }
 
-  static create(professor: Omit<Professor, 'id'>): Professor {
-    const novoProfessor: Professor = {
-      ...professor,
-      id: nextId++
-    };
-    professores.push(novoProfessor);
-    return novoProfessor;
+  static async create(professor: Omit<Professor, 'id'>): Promise<Professor> {
+    const response = await fetch(this.baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(professor),
+    });
+    if (!response.ok) throw new Error('Erro ao criar professor');
+    return response.json();
   }
 
-  static update(id: number, professorAtualizado: Omit<Professor, 'id'>): Professor | null {
-    const index = professores.findIndex(professor => professor.id === id);
-    if (index !== -1) {
-      professores[index] = { ...professorAtualizado, id };
-      return professores[index];
-    }
-    return null;
+  static async update(id: number, professor: Omit<Professor, 'id'>): Promise<Professor> {
+    const response = await fetch(`${this.baseUrl}/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(professor),
+    });
+    if (!response.ok) throw new Error('Erro ao atualizar professor');
+    return response.json();
   }
 
-  static delete(id: number): boolean {
-    const index = professores.findIndex(professor => professor.id === id);
-    if (index !== -1) {
-      professores[index].ativo = false;
-      return true;
-    }
-    return false;
+  static async delete(id: number): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Erro ao deletar professor');
   }
 
-  static reativar(id: number): boolean {
-    const index = professores.findIndex(professor => professor.id === id);
-    if (index !== -1) {
-      professores[index].ativo = true;
-      return true;
-    }
-    return false;
+  static async reativar(id: number): Promise<Professor> {
+    const response = await fetch(`${this.baseUrl}/${id}/reativar`, {
+      method: 'PUT',
+    });
+    if (!response.ok) throw new Error('Erro ao reativar professor');
+    return response.json();
   }
 }
